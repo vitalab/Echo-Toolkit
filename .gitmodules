@@ -1,0 +1,3 @@
+[submodule "ASCENT"]
+	path = ASCENT
+	url = https://github.com/arnaudjudge/ASCENT.git
