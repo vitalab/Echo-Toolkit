@@ -61,11 +61,16 @@ keeping only the region of interest, the *cone* or *sector*.
 <img src="./assets/a4c.gif" width="25%"/> --> <img src="./assets/a4c_masked.gif" width="25%"/>
 
 This project contains a command line script to create and apply a mask to remove all such annotations. 
-To run it, simply use the `etk_extract_sector` command.
+To run it, simply use the following command:
+
+```bash
+etk_extract_sector
+```
 
 By default, it will process input data from the `./data/examples/` folder at the project's root. 
 Example images and sequences are included already [^1].
-However, many options are available through hydra (https://hydra.cc/docs/intro/) CLI override syntax or 
+
+Many options are available through hydra (https://hydra.cc/docs/intro/) CLI override syntax or 
 through modification/addition of config files. 
 The main config files with all available default arguments is `./echotk/config/sector_extract.yaml`.
 
