@@ -1,0 +1,37 @@
+defaults:
+  - _self_
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+hydra:
+  output_subdir: null
+  run:
+    dir: .
+
+#
+# PARAMETERS
+#
+# input and output paths
+input: ${oc.env:PROJECT_ROOT}/data/examples/
+output: ${oc.env:PROJECT_ROOT}/output/
+
+save_sector_mask: True
+save_metrics: False
+
+# checkpoint path for nnunet model
+nnunet_ckpt: ${oc.env:PROJECT_ROOT}/data/model_weights/sector_extract.ckpt
+use_tta: False # tta generally not needed for sector extraction
+
+# show plots
+show_result_gifs: False
+show_intermediate_plots: False
+
+# verbose flag for metrics
+verbose: False
+
+# thresholds for metrics after ransac application
+ransac_thresh:
+  diff: 1
+  signal_lost: 2.75
+  ratio: 0.25
+  remaining_annotations: 0.15
