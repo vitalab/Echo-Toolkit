@@ -3,7 +3,7 @@
 Code repository for an echocardiography medical imaging toolkit.
 Functionalities also extend to general ultrasound imaging.
 
-We ask that you cite the `Domain Adaptation of Echocardiography Segmentation Via Reinforcement Learning` paper, which made use of this sector extraction tool, in exchange for the use of this project:
+We ask that you cite the `Domain Adaptation of Echocardiography Segmentation Via Reinforcement Learning` paper, which made use of the sector extraction tool, in exchange for the use of this project:
 
 ```
 @InProceedings{Jud_Domain_MICCAI2024,
