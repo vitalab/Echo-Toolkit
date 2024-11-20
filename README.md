@@ -3,7 +3,7 @@
 Code repository for an echocardiography medical imaging toolkit.
 Functionalities also extend to general ultrasound imaging.
 
-We ask that you cite the `Domain Adaptation of Echocardiography Segmentation Via Reinforcement Learning` paper in exchange for the use of this project:
+We ask that you cite the `Domain Adaptation of Echocardiography Segmentation Via Reinforcement Learning` paper, which made use of this sector extraction tool, in exchange for the use of this project:
 
 ```
 @InProceedings{Jud_Domain_MICCAI2024,
@@ -14,7 +14,7 @@ We ask that you cite the `Domain Adaptation of Echocardiography Segmentation Via
         publisher = {Springer Nature Switzerland},
         volume = {LNCS 15009},
         month = {October},
-        page = {pending}
+        page = {235-244},
 }
 ```
 
@@ -30,7 +30,7 @@ Included test examples (which are small) for sector extraction require up to 2-3
 1. Download the repository:
    ```bash
    # clone project
-   git clone --recurse-submodules https://github.com/arnaudjudge/Echo-Toolkit.git
+   git clone --recurse-submodules https://github.com/vitalab/Echo-Toolkit.git
    cd Echo-Toolkit
    ```
 2. Create a virtual environment (Conda is strongly recommended):
@@ -58,7 +58,9 @@ Included test examples (which are small) for sector extraction require up to 2-3
 Ultrasound sector extraction removes all annotations, text, ECG trace and unnecessary information from the images, 
 keeping only the region of interest, the *cone* or *sector*.
 
-<img src="./assets/a4c.gif" width="25%"/> --> <img src="./assets/a4c_masked.gif" width="25%"/>
+|![gif before extraction](./assets/a4c.gif)<br>Before|![gif after extraction](./assets/a4c_masked.gif)<br>After|
+|:-:|:-:|
+
 
 This project contains a command line script to create and apply a mask to remove all such annotations. 
 To run it, simply use the following command:
