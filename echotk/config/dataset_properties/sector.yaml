@@ -1,0 +1,11 @@
+do_resample: True
+spacing_after_resampling: [0.3585185706615448, 0.3585185706615448, 1.0]
+do_normalize: True
+modalities:
+  0: US
+use_non_zero_mask:
+  0: False
+intensity_properties: null
+all_cases: []
+all_shapes_after_resampling: []
+all_classes: []

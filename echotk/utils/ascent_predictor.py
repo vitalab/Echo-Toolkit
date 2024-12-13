@@ -16,7 +16,7 @@ import os
 
 
 class CustomASCENTPredictor:
-    def __init__(self, model_cfg, model_name='sector'):
+    def __init__(self, model_cfg, dataset_properties):
         print(OmegaConf.to_yaml(model_cfg))
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -38,14 +38,7 @@ class CustomASCENTPredictor:
 
         self.model: LightningModule = hydra.utils.instantiate(model_cfg)
 
-        self.dataset_properties = load_pickle(
-            os.path.join(
-                f"{os.environ['PROJECT_ROOT']}/data",
-                model_name.replace("_3d", "").replace("_2d", ""),
-                "preprocessed",
-                "dataset_properties.pkl",
-            )
-        )
+        self.dataset_properties = dataset_properties
 
         self.data_transforms = AscentPredictor.get_predict_transforms(self.dataset_properties)
 
