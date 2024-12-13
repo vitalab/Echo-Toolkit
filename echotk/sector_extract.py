@@ -19,7 +19,7 @@ def extract_sector(cfg: DictConfig):
     out_path = Path(cfg.output)
     out_path.mkdir(exist_ok=True, parents=True)
 
-    nnunet = CustomASCENTPredictor(model_name='sector_3d', use_tta=cfg.use_tta)
+    nnunet = CustomASCENTPredictor(cfg.model)
 
     if isinstance(cfg.input, ListConfig):
         pred = nnunet.predict_from_paths(cfg.input, cfg.nnunet_ckpt)

@@ -1,30 +1,23 @@
 import hydra
-from hydra.core.global_hydra import GlobalHydra
 from monai.transforms import ToTensord
 from omegaconf import OmegaConf
-from hydra import compose, initialize
 from lightning import LightningModule
 
 import torch
-from ASCENT.ascent.predict import AscentPredictor
-from ASCENT.ascent.utils.file_and_folder_operations import load_pickle
-from ASCENT.ascent.utils.transforms import Preprocessd, Convert2Dto3DIfNeeded
+
+from ascent.predict import AscentPredictor
+from ascent.utils.file_and_folder_operations import load_pickle
+from ascent.utils.transforms import Preprocessd, Convert2Dto3DIfNeeded
+
 from monai.data import CacheDataset, DataLoader, ArrayDataset, MetaTensor
 from monai import transforms
 from lightning import Trainer
 import os
 
-ASCENT_CONFIGS = f"../../ASCENT/ascent/configs/"  # must be relative path
-
 
 class CustomASCENTPredictor:
-    def __init__(self, model_name, use_tta=False):
-        GlobalHydra.instance().clear()
-        initialize(version_base="1.2", config_path=ASCENT_CONFIGS, job_name="model")
-        cfg = compose(config_name=f"model/{model_name}.yaml", overrides=["++trainer.max_epochs=1",
-                                                                         f"model.tta={use_tta}",
-                                                                         "model.save_predictions=False"])
-        print(OmegaConf.to_yaml(cfg))
+    def __init__(self, model_cfg, model_name='sector'):
+        print(OmegaConf.to_yaml(model_cfg))
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         print(f"Running on device: {self.device}")
@@ -43,7 +36,7 @@ class CustomASCENTPredictor:
             logger=False
         )
 
-        self.model: LightningModule = hydra.utils.instantiate(cfg.model)
+        self.model: LightningModule = hydra.utils.instantiate(model_cfg)
 
         self.dataset_properties = load_pickle(
             os.path.join(
