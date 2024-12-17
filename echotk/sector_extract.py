@@ -40,7 +40,7 @@ def extract_sector(cfg: DictConfig):
         filenames = [filename]
         vol = [(vol, hdr, aff)]
     else:
-        raise Exception("Invalid input file format")
+        raise Exception("Invalid input file")
 
     # zip with filenames
     for p, v, f in zip(pred, vol, filenames):
@@ -127,7 +127,10 @@ def extract_sector(cfg: DictConfig):
 @hydra.main(version_base="1.2", config_path="config", config_name="sector_extract.yaml")
 def main(cfg: DictConfig):
     # set project root
-    os.environ['PROJECT_ROOT'] = os.path.join("/", *os.path.abspath(__file__).split('/')[:-2])
+    if 'PROJECT_ROOT' not in os.environ:
+        project_root = os.path.join("/", *os.path.abspath(__file__).split('/')[:-2])
+        print(f"Setting env variable PROJECT_ROOT to : {project_root}")
+        os.environ['PROJECT_ROOT'] = project_root
     # run
     extract_sector(cfg)
 
