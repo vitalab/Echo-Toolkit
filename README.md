@@ -38,8 +38,9 @@ To run through the Docker images, use the following command:
 ```
 
 The command syntax is as follows:
-- `--gpus "device=0"` indicates which GPU to use
-- `-v $(pwd)/:/ETK_MOUNT/` mounts the current directory to the 
+- `--ipc host` gives the container more shared memory.
+- `--gpus "device=0"` indicates which GPU to use.
+- `-v $(pwd)/:/ETK_MOUNT/` mounts the current directory to the /ETK_MOUNT/ directory in the container, allowing for file syncing between host and container.
 - `--user $(id -u):$(id -g)` allows to user in the container to be the same as outside it. Output files will not be locked by sudo user once created.
 - `input=/ETK_MOUNT/<PATH_TO_INPUT_FILE>` input file. <u>The input file (or folder) must be within the current mounted directory.</u>*
 - `output=/ETK_MOUNT/<PATH_TO_OUTPUT>` indicated the output file location. <u>The output folder location must be within the current mounted directory.</u>*
