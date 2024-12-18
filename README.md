@@ -41,11 +41,10 @@ The command syntax is as follows:
 - `--gpus "device=0"` indicates which GPU to use
 - `-v $(pwd)/:/ETK_MOUNT/` mounts the current directory to the 
 - `--user $(id -u):$(id -g)` allows to user in the container to be the same as outside it. Output files will not be locked by sudo user once created.
-- `input=/ETK_MOUNT/<PATH_TO_INPUT_FILE>` input file. <u>The input file (or folder) must be within the current mounted directory.*<\u>
-- `output=/ETK_MOUNT/<PATH_TO_OUTPUT>` indicated the output file location. <u>The output folder location must be within the current mounted directory.*<\u>
+- `input=/ETK_MOUNT/<PATH_TO_INPUT_FILE>` input file. <u>The input file (or folder) must be within the current mounted directory.</u>*
+- `output=/ETK_MOUNT/<PATH_TO_OUTPUT>` indicated the output file location. <u>The output folder location must be within the current mounted directory.</u>*
 
-* Input and output paths must be located in current directory in order for files to be visible to the container and to be synced. 
-* This is true for any path referenced in command line arguments.
+\* Input and output paths must be located in current directory in order for files to be visible to the container and to be synced. This is true for any pah referenced in command line arguments.
 
 ## Install
 To run fully locally install the project and its dependencies:
