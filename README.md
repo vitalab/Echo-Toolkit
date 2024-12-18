@@ -27,19 +27,25 @@ Included test examples (which are small) for sector extraction require up to 2-3
 
 ## Usage through Docker container
 
-In order to use Docker, you must install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+In order to use a Docker container to run this tool, you must install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
 It allows the Docker container to make use of the local GPU. 
 
 Images for this project are available here: https://hub.docker.com/r/arnaudjudge/echo-toolkit.
 
+Debugging in the container can be done with the following command, opening a bash command line in the container:
+```bash
+  sudo docker run -it --ipc host --gpus all -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest bash
+```
+
+### Ultrasound sector extraction
 To run through the Docker images, use the following command:
 ```bash
-  sudo docker run -it --ipc host --gpus "device=0" -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT>
+  sudo docker run -it --ipc host --gpus all -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT>
 ```
 
 The command syntax is as follows:
 - `--ipc host` gives the container more shared memory.
-- `--gpus "device=0"` indicates which GPU to use.
+- `--gpus all` allocates access to all gpus on host machine. `--gpus "device=0"` can be used to allocate a specific gpu only.
 - `-v $(pwd)/:/ETK_MOUNT/` mounts the current directory to the /ETK_MOUNT/ directory in the container, allowing for file syncing between host and container.
 - `--user $(id -u):$(id -g)` allows to user in the container to be the same as outside it. Output files will not be locked by sudo user once created.
 - `input=/ETK_MOUNT/<PATH_TO_INPUT_FILE>` input file. <u>The input file (or folder) must be within the current mounted directory.</u>*
