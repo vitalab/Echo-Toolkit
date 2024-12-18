@@ -25,7 +25,30 @@ Current functionalities:
 Inference time may be quite long if using an older GPU and long input sequences. 
 Included test examples (which are small) for sector extraction require up to 2-3 seconds per prediction (using roughly 7GB of VRAM), using a NVIDIA RTX3090 GPU.
 
+## Usage through Docker container
+
+In order to use Docker, you must install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+It allows the Docker container to make use of the local GPU. 
+
+Images for this project are available here: https://hub.docker.com/r/arnaudjudge/echo-toolkit.
+
+To run through the Docker images, use the following command:
+```bash
+  sudo docker run -it --ipc host --gpus "device=0" -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT>
+```
+
+The command syntax is as follows:
+- `--gpus "device=0"` indicates which GPU to use
+- `-v $(pwd)/:/ETK_MOUNT/` mounts the current directory to the 
+- `--user $(id -u):$(id -g)` allows to user in the container to be the same as outside it. Output files will not be locked by sudo user once created.
+- `input=/ETK_MOUNT/<PATH_TO_INPUT_FILE>` input file. <u>The input file (or folder) must be within the current mounted directory.*<\u>
+- `output=/ETK_MOUNT/<PATH_TO_OUTPUT>` indicated the output file location. <u>The output folder location must be within the current mounted directory.*<\u>
+
+* Input and output paths must be located in current directory in order for files to be visible to the container and to be synced. 
+* This is true for any path referenced in command line arguments.
+
 ## Install
+To run fully locally install the project and its dependencies:
 
 1. Download the repository:
    ```bash
