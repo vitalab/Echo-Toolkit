@@ -27,15 +27,15 @@ Included test examples (which are small) for sector extraction require up to 2-3
 
 ## Usage through Docker container
 
-In order to use a Docker container to run this tool, you must install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
-It allows the Docker container to make use of the local GPU. 
-
 Images for this project are available here: https://hub.docker.com/r/arnaudjudge/echo-toolkit.
 
 Debugging in the container can be done with the following command, opening a bash command line in the container:
 ```bash
   sudo docker run -it --ipc host --gpus all -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest bash
 ```
+
+In order to use a Docker container with the host machine's GPU to run this tool, you must install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+The `--gpus all` flag allows for use of the host GPU.
 
 ### Ultrasound sector extraction
 To run through the Docker images, use the following command:
@@ -52,6 +52,12 @@ The command syntax is as follows:
 - `output=/ETK_MOUNT/<PATH_TO_OUTPUT>` indicated the output file location. <u>The output folder location must be within the current mounted directory.</u>*
 
 \* Input and output paths must be located in current directory in order for files to be visible to the container and to be synced. This is true for any pah referenced in command line arguments.
+
+To use the extraction tool without use of a GPU, use this command instead:
+```bash
+  sudo docker run -it --ipc host -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT> accelerator=cpu
+```
+The `accelerator=cpu` argument changes the pytorch accelerator. Keep in mind that inference times can be very long with use of CPUs only. 
 
 ## Install
 To run fully locally install the project and its dependencies:
