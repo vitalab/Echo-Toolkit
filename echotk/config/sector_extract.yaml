@@ -23,6 +23,7 @@ save_metrics: False
 # checkpoint path for nnunet model
 nnunet_ckpt: ${oc.env:PROJECT_ROOT}/data/model_weights/sector_extract.ckpt
 use_tta: False # tta generally not needed for sector extraction
+accelerator: gpu
 
 # show plots
 show_result_gifs: False
