@@ -19,7 +19,7 @@ def extract_sector(cfg: DictConfig):
     out_path = Path(cfg.output)
     out_path.mkdir(exist_ok=True, parents=True)
 
-    nnunet = CustomASCENTPredictor(cfg.model, cfg.dataset_properties)
+    nnunet = CustomASCENTPredictor(cfg.model, cfg.dataset_properties, cfg.accelerator)
 
     if isinstance(cfg.input, ListConfig):
         pred = nnunet.predict_from_paths(cfg.input, cfg.nnunet_ckpt)
@@ -40,7 +40,7 @@ def extract_sector(cfg: DictConfig):
         filenames = [filename]
         vol = [(vol, hdr, aff)]
     else:
-        raise Exception("Invalid input file format")
+        raise Exception("Invalid input file")
 
     # zip with filenames
     for p, v, f in zip(pred, vol, filenames):
@@ -116,7 +116,7 @@ def extract_sector(cfg: DictConfig):
         # imgs[0].save("a4c_masked.gif", save_all=True, append_images=imgs[1:], duration=0.1, loop=0)
 
         # save mask and metrics dict (if wanted)
-        save_nifti_file(f"{out_path}/{f_name}.nii.gz", masked_image, v[1], v[2])
+        save_nifti_file(f"{out_path}/{f_name}_sector_removed.nii.gz", masked_image, v[1], v[2])
         if cfg.save_sector_mask:
             save_nifti_file(f"{out_path}/{f_name}_sector_mask.nii.gz", ransac_mask, v[1], v[2])
         if cfg.save_metrics:
@@ -127,7 +127,10 @@ def extract_sector(cfg: DictConfig):
 @hydra.main(version_base="1.2", config_path="config", config_name="sector_extract.yaml")
 def main(cfg: DictConfig):
     # set project root
-    os.environ['PROJECT_ROOT'] = os.path.join("/", *os.path.abspath(__file__).split('/')[:-2])
+    if 'PROJECT_ROOT' not in os.environ:
+        project_root = os.path.join("/", *os.path.abspath(__file__).split('/')[:-2])
+        print(f"Setting env variable PROJECT_ROOT to : {project_root}")
+        os.environ['PROJECT_ROOT'] = project_root
     # run
     extract_sector(cfg)
 

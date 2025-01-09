@@ -16,10 +16,10 @@ import os
 
 
 class CustomASCENTPredictor:
-    def __init__(self, model_cfg, dataset_properties):
+    def __init__(self, model_cfg, dataset_properties, accelerator="gpu"):
         print(OmegaConf.to_yaml(model_cfg))
 
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() and accelerator == "gpu" else "cpu")
         print(f"Running on device: {self.device}")
 
         self.trainer = Trainer(
@@ -29,7 +29,7 @@ class CustomASCENTPredictor:
             limit_val_batches=10,
             limit_test_batches=2,
             gradient_clip_val=12,
-            accelerator="gpu",
+            accelerator=accelerator,
             devices=1,
             enable_progress_bar=False,
             enable_checkpointing=False,
