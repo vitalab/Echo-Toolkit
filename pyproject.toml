@@ -40,7 +40,7 @@ rich = "*"
 sh = { version = "*", markers = "sys_platform == 'win32'" }
 torchinfo = "*"
 SimpleITK = "*"
-scikit-image = "*"
+scikit-image = "<=0.18.0"
 scikit-learn = "*"
 nibabel = "*"
 monai= "==1.2.0"
