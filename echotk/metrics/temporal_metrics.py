@@ -75,13 +75,13 @@ def get_temporal_hd_metric(pred_as_batch, voxel_spacing, label=None, num_threads
     return [0] + hds + [0]
 
 
-def get_temporal_consistencies(batch_segmentation, voxelspacing=(0.37, 0.37), skip_measurement_metrics=False):
+def get_temporal_consistencies(batchwise_3d_segmentation, voxelspacing=(0.37, 0.37), skip_measurement_metrics=False):
     """
     Evaluate temporal consistency of anatomical measurements across frames.
 
     Parameters
     ----------
-    batch_segmentation : np.ndarray
+    batchwise_3d_segmentation : np.ndarray
         3D segmentation sequence (T, H, W).
     voxelspacing : tuple of float, optional
         Pixel spacing (mm). Default is (0.37, 0.37).
@@ -99,45 +99,45 @@ def get_temporal_consistencies(batch_segmentation, voxelspacing=(0.37, 0.37), sk
     # calculate measures
     # if exception, make sure threshold is triggered
     try:
-        measures_1d["lv_area"] = EchoMeasure.structure_area(batch_segmentation, labels=1,
+        measures_1d["lv_area"] = EchoMeasure.structure_area(batchwise_3d_segmentation, labels=1,
                                                             voxelarea=voxelspacing[0] * voxelspacing[1])
     except:
         print("lv_area extraction failed")
-        measures_1d["lv_area"] = np.resize([1, 0], len(batch_segmentation))
+        measures_1d["lv_area"] = np.resize([1, 0], len(batchwise_3d_segmentation))
 
     try:
-        measures_1d["myo_area"] = EchoMeasure.structure_area(batch_segmentation, labels=2,
+        measures_1d["myo_area"] = EchoMeasure.structure_area(batchwise_3d_segmentation, labels=2,
                                                              voxelarea=voxelspacing[0] * voxelspacing[1])
     except:
         print("myo_area extraction failed")
-        measures_1d["myo_area"] = np.resize([1, 0], len(batch_segmentation))
+        measures_1d["myo_area"] = np.resize([1, 0], len(batchwise_3d_segmentation))
 
     try:
-        measures_1d['epi_center_x'] = EchoMeasure.structure_center(batch_segmentation, labels=[1, 2], axis=0)
+        measures_1d['epi_center_x'] = EchoMeasure.structure_center(batchwise_3d_segmentation, labels=[1, 2], axis=0)
     except:
         print("epi_center_x extraction failed")
-        measures_1d["epi_center_x"] = np.resize([1, 0], len(batch_segmentation))
+        measures_1d["epi_center_x"] = np.resize([1, 0], len(batchwise_3d_segmentation))
 
     try:
-        measures_1d['epi_center_y'] = EchoMeasure.structure_center(batch_segmentation, labels=[1, 2], axis=1)
+        measures_1d['epi_center_y'] = EchoMeasure.structure_center(batchwise_3d_segmentation, labels=[1, 2], axis=1)
     except:
         print("epi_center_y extraction failed")
-        measures_1d["epi_center_y"] = np.resize([1, 0], len(batch_segmentation))
+        measures_1d["epi_center_y"] = np.resize([1, 0], len(batchwise_3d_segmentation))
 
     if not skip_measurement_metrics:
         try:
-            measures_1d["lv_base_width"] = EchoMeasure.lv_base_width(batch_segmentation, lv_labels=1, myo_labels=2,
+            measures_1d["lv_base_width"] = EchoMeasure.lv_base_width(batchwise_3d_segmentation, lv_labels=1, myo_labels=2,
                                                                      voxelspacing=voxelspacing)
         except:
             print("lv_base_width extraction failed")
-            measures_1d["lv_base_width"] = np.resize([1, 0], len(batch_segmentation))
+            measures_1d["lv_base_width"] = np.resize([1, 0], len(batchwise_3d_segmentation))
 
         try:
-            measures_1d["lv_length"] = EchoMeasure.lv_length(batch_segmentation, lv_labels=1, myo_labels=2,
+            measures_1d["lv_length"] = EchoMeasure.lv_length(batchwise_3d_segmentation, lv_labels=1, myo_labels=2,
                                                              voxelspacing=voxelspacing)
         except:
             print("lv_length extraction failed")
-            measures_1d["lv_length"] = np.resize([1, 0], len(batch_segmentation))
+            measures_1d["lv_length"] = np.resize([1, 0], len(batchwise_3d_segmentation))
 
     t_consistencies = {}
     for attr in measures_1d.keys():
@@ -148,29 +148,29 @@ def get_temporal_consistencies(batch_segmentation, voxelspacing=(0.37, 0.37), sk
     if not skip_measurement_metrics:
         try:
             measures_1d["hd_frames_myo"] = np.asarray(
-                get_temporal_hd_metric(batch_segmentation, voxelspacing, label=Label.MYO))
+                get_temporal_hd_metric(batchwise_3d_segmentation, voxelspacing, label=Label.MYO))
         except:
             print("hd_frames_myo extraction failed")
-            measures_1d["hd_frames_myo"] = np.resize([1, 0], len(batch_segmentation))
+            measures_1d["hd_frames_myo"] = np.resize([1, 0], len(batchwise_3d_segmentation))
         t_consistencies["hd_frames_myo"] = measures_1d["hd_frames_myo"] > attr_thresholds["hd_frames_myo"]
 
         try:
-            measures_1d["hd_frames_epi"] = np.asarray(get_temporal_hd_metric(batch_segmentation, voxelspacing))
+            measures_1d["hd_frames_epi"] = np.asarray(get_temporal_hd_metric(batchwise_3d_segmentation, voxelspacing))
         except:
             print("hd_frames_epi extraction failed")
-            measures_1d["hd_frames_epi"] = np.resize([1, 0], len(batch_segmentation))
+            measures_1d["hd_frames_epi"] = np.resize([1, 0], len(batchwise_3d_segmentation))
         t_consistencies["hd_frames_epi"] = measures_1d["hd_frames_epi"] > attr_thresholds["hd_frames_epi"]
 
     return t_consistencies, measures_1d
 
 
-def check_temporal_validity(batch_segmentation, voxelspacing=(0.37, 0.37), relaxed_factor=None, plot=False, verbose=False):
+def check_temporal_validity(batchwise_3d_segmentation, voxelspacing=(0.37, 0.37), relaxed_factor=None, plot=False, verbose=False):
     """
     Check whether a 3D segmentation is temporally valid across frames.
 
     Parameters
     ----------
-    batch_segmentation : np.ndarray
+    batchwise_3d_segmentation : np.ndarray
         3D segmentation sequence (T, H, W).
     voxelspacing : tuple of float, optional
         Pixel spacing (mm). Default is (0.37, 0.37).
@@ -190,7 +190,7 @@ def check_temporal_validity(batch_segmentation, voxelspacing=(0.37, 0.37), relax
     """
     total_errors = []
     frames = []
-    temp_constistencies, measures_1d = get_temporal_consistencies(batch_segmentation, voxelspacing)
+    temp_constistencies, measures_1d = get_temporal_consistencies(batchwise_3d_segmentation, voxelspacing)
     for attr in temp_constistencies.keys():
         thresh = attr_thresholds[attr]
         t_consistency = temp_constistencies[attr]

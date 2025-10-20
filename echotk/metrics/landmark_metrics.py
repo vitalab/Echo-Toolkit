@@ -9,7 +9,7 @@ from echotk.metrics.utils.measure import EchoMeasure
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
-def mitral_valve_distance(batch_segmentation, gt, spacing, mistake_distances=[5, 7.5], return_mean=True):
+def mitral_valve_distance(batchwise_3d_segmentation, gt, spacing, mistake_distances=[5, 7.5], return_mean=True):
     """
     Compute mitral valve localization errors between candidate and ground-truth segmentations.
 
@@ -21,7 +21,7 @@ def mitral_valve_distance(batch_segmentation, gt, spacing, mistake_distances=[5,
 
     Parameters
     ----------
-    batch_segmentation : np.ndarray
+    batchwise_3d_segmentation : np.ndarray
         Predicted segmentation sequence of shape `(T, H, W)` or `(T, W, H)`,
         where `T` is the number of frames.
     gt : np.ndarray
@@ -76,7 +76,7 @@ def mitral_valve_distance(batch_segmentation, gt, spacing, mistake_distances=[5,
             lv_points = np.asarray(
                 EchoMeasure._endo_base(gt[i].T, lv_labels=Label.LV, myo_labels=Label.MYO))
             p_points = np.asarray(
-                EchoMeasure._endo_base(batch_segmentation[i].T, lv_labels=Label.LV, myo_labels=Label.MYO))
+                EchoMeasure._endo_base(batchwise_3d_segmentation[i].T, lv_labels=Label.LV, myo_labels=Label.MYO))
             mae_values = [np.linalg.norm(lv_points[0] - p_points[0]), np.linalg.norm(lv_points[1] - p_points[1])]
             mae += [mae_values]
             mse += [((lv_points - p_points) ** 2).mean()]
@@ -98,8 +98,8 @@ def mitral_valve_distance(batch_segmentation, gt, spacing, mistake_distances=[5,
 
         except Exception as e:
             print(f"LM exception: {e}")
-            mae += [[batch_segmentation.shape[-1], batch_segmentation.shape[-1]]]
-            mse += [batch_segmentation.shape[-1] ** 2]
+            mae += [[batchwise_3d_segmentation.shape[-1], batchwise_3d_segmentation.shape[-1]]]
+            mse += [batchwise_3d_segmentation.shape[-1] ** 2]
             for k in mistakes.keys():
                 mistakes[k] += 1
 

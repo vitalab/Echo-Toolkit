@@ -84,15 +84,15 @@ def hausdorff(pred: np.ndarray, target: np.ndarray, labels: Tuple[LabelEnum], ex
     return hd_dict
 
 
-def full_test_metrics(batch_segmentation, batch_gt, voxel_spacing, device, prefix='', verbose=True):
+def full_test_metrics(batchwise_3d_segmentation, batchwise_gt, voxel_spacing, device, prefix='', verbose=True):
     """
     Compute all evaluation metrics for a predicted segmentation sequence.
 
     Parameters
     ----------
-    batch_segmentation : np.ndarray
+    batchwise_3d_segmentation : np.ndarray
         Predicted segmentation sequence (T, H, W). T Can be 1 for 2D segmentation
-    batch_gt : np.ndarray
+    batchwise_gt : np.ndarray
         Ground-truth segmentation sequence (T, H, W).
     voxel_spacing : tuple of float
         Pixel spacing (mm) for spatial metrics.
@@ -114,9 +114,9 @@ def full_test_metrics(batch_segmentation, batch_gt, voxel_spacing, device, prefi
     logs = {} # To be filled in...
 
     start_time = time.time()
-    test_dice = dice(batch_segmentation, batch_gt, labels=(Label.BG, Label.LV, Label.MYO),
+    test_dice = dice(batchwise_3d_segmentation, batchwise_gt, labels=(Label.BG, Label.LV, Label.MYO),
                      exclude_bg=True, all_classes=True)
-    test_dice_epi = dice((batch_segmentation != 0).astype(np.uint8), (batch_gt != 0).astype(np.uint8),
+    test_dice_epi = dice((batchwise_3d_segmentation != 0).astype(np.uint8), (batchwise_gt != 0).astype(np.uint8),
                          labels=(Label.BG, Label.LV), exclude_bg=True, all_classes=False)
     if verbose:
         print(f"Dice took {round(time.time() - start_time, 4)} (s).")
@@ -124,9 +124,9 @@ def full_test_metrics(batch_segmentation, batch_gt, voxel_spacing, device, prefi
     logs.update({f"{prefix}dice/epi": test_dice_epi})
 
     start_time = time.time()
-    test_hd = hausdorff(batch_segmentation, batch_gt, labels=(Label.BG, Label.LV, Label.MYO),
+    test_hd = hausdorff(batchwise_3d_segmentation, batchwise_gt, labels=(Label.BG, Label.LV, Label.MYO),
                         exclude_bg=True, all_classes=True, voxel_spacing=voxel_spacing)
-    test_hd_epi = hausdorff((batch_segmentation != 0).astype(np.uint8), (batch_gt != 0).astype(np.uint8),
+    test_hd_epi = hausdorff((batchwise_3d_segmentation != 0).astype(np.uint8), (batchwise_gt != 0).astype(np.uint8),
                             labels=(Label.BG, Label.LV), exclude_bg=True, all_classes=False,
                             voxel_spacing=voxel_spacing)['Hausdorff']
     if verbose:
@@ -135,7 +135,7 @@ def full_test_metrics(batch_segmentation, batch_gt, voxel_spacing, device, prefi
     logs.update({f"{prefix}hd/epi": test_hd_epi})
 
     start_time = time.time()
-    anat_errors = is_anatomically_valid(batch_segmentation)
+    anat_errors = is_anatomically_valid(batchwise_3d_segmentation)
     if verbose:
         print(f"AV took {round(time.time() - start_time, 4)} (s).")
     logs.update({
@@ -146,9 +146,9 @@ def full_test_metrics(batch_segmentation, batch_gt, voxel_spacing, device, prefi
     # temporal metrics have no meaning below 3 consecutive frames
     # ignore otherwise
     # Ideally more are needed
-    if len(batch_segmentation) >= 3:
+    if len(batchwise_3d_segmentation) >= 3:
         start_time = time.time()
-        temporal_valid, num_temporal_errors = check_temporal_validity(batch_segmentation.transpose((0, 2, 1)),
+        temporal_valid, num_temporal_errors = check_temporal_validity(batchwise_3d_segmentation.transpose((0, 2, 1)),
                                                  voxel_spacing)
         if verbose:
             print(f"TV took {round(time.time() - start_time, 4)} (s).")
@@ -158,7 +158,7 @@ def full_test_metrics(batch_segmentation, batch_gt, voxel_spacing, device, prefi
         })
 
     start_time = time.time()
-    lm_metrics = mitral_valve_distance(batch_segmentation, batch_gt, voxel_spacing)
+    lm_metrics = mitral_valve_distance(batchwise_3d_segmentation, batchwise_gt, voxel_spacing)
     if verbose:
         print(f"LM dist took {round(time.time() - start_time, 4)} (s).")
     logs.update({f"{prefix}LM/{k}": v for k, v in lm_metrics.items()})
