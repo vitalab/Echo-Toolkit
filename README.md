@@ -54,12 +54,12 @@ To obtain all of these metrics, use the `full_test_metrics` function from `echot
 ```python
 from echotk.metrics.test_metrics import full_test_metrics
 
-# y_pred_as_batch: predicted 3D segmentation (T, H, W)
-# gt_as_batch: ground-truth 3D segmentation
+# batch_segmentation: predicted 3D segmentation (T, H, W) -- in batch format (Time first)
+# batch_gt: ground-truth 3D segmentation
 # voxel_spacing: pixel spacing in mm
 # device: torch device (cpu or cuda)
 
-logs = full_test_metrics(y_pred_as_batch, gt_as_batch, voxel_spacing, device, prefix="test", verbose=True)
+logs = full_test_metrics(batch_segmentation, batch_gt, voxel_spacing, device, prefix="test", verbose=True)
 
 # Access specific metrics
 print("Dice LV:", logs["test/dice/LV"])
