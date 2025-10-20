@@ -38,13 +38,10 @@ To obtain all of these metrics, use the `full_test_metrics` function from `echot
   Checks whether each frame’s segmentation is anatomically plausible.
 
 - **Temporal Consistency** (`check_temporal_validity`)  
-  Detects abrupt changes or inconsistencies across consecutive frames using LV/MYO area, epicardial center, LV length, and base width.
+  Detects abrupt changes or inconsistencies across consecutive frames using LV/MYO area, epicardial center, LV length, base width, and hausdorff distance.
 
 - **Mitral Valve Distance** (`mitral_valve_distance`)  
   Computes frame-wise errors in mitral valve localization relative to the ground-truth, reporting MAE, MSE, and thresholded mistake rates per cardiac cycle.
-
-- **Temporal Hausdorff Metric** (`get_temporal_hd_metric`, `temporal_hd`)  
-  Measures boundary differences across consecutive frames to assess smoothness over time.
 
 - **Cycle Analysis** (`extract_cycle_points`, `estimate_num_cycles`)  
   Detects systolic peaks and diastolic valleys in LV area and estimates the number of cardiac cycles.
