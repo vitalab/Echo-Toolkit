@@ -19,8 +19,55 @@ We ask that you cite the `Domain Adaptation of Echocardiography Segmentation Via
 ```
 
 Current functionalities:
+- Echocardiography metrics for 2-3D segmentation (BG, LV and MYO)
 - Ultrasound sector extraction tool
 
+# Echo Metrics
+Echo Toolkit provides a set of evaluation metrics to assess the quality and consistency of echocardiographic segmentations. These metrics include **Dice, Hausdorff distance, anatomical validity, temporal consistency**, and **mitral valve localization**.
+
+To obtain all of these metrics, use the `full_test_metrics` function from `echotk.metric.test_metrics`.
+
+### Quick Reference
+- **Dice Score** (`dice`)  
+  Measures overlap between predicted and ground-truth segmentations for each label (LV, MYO, BG).
+
+- **Hausdorff Distance (HD)** (`hausdorff`)  
+  Measures boundary mismatch between predicted and ground-truth segmentations in physical units (mm).
+
+- **Anatomical Validity** (`is_anatomically_valid`)  
+  Checks whether each frame’s segmentation is anatomically plausible.
+
+- **Temporal Consistency** (`check_temporal_validity`)  
+  Detects abrupt changes or inconsistencies across consecutive frames using LV/MYO area, epicardial center, LV length, base width, and hausdorff distance.
+
+- **Mitral Valve Distance** (`mitral_valve_distance`)  
+  Computes frame-wise errors in mitral valve localization relative to the ground-truth, reporting MAE, MSE, and thresholded mistake rates per cardiac cycle.
+
+- **Cycle Analysis** (`extract_cycle_points`, `estimate_num_cycles`)  
+  Detects systolic peaks and diastolic valleys in LV area and estimates the number of cardiac cycles.
+
+### Example Usage
+
+```python
+from echotk.metrics.test_metrics import full_test_metrics
+
+# batchwise_3d_segmentation: predicted 3D segmentation (T, H, W) -- in batch format (Time first)
+# batchwise_gt: ground-truth 3D segmentation
+# voxel_spacing: pixel spacing in mm
+# device: torch device (cpu or cuda)
+
+logs = full_test_metrics(batchwise_3d_segmentation, batchwise_gt, voxel_spacing, device, prefix="test", verbose=True)
+
+# Access specific metrics
+print("Dice LV:", logs["test/dice/LV"])
+print("HD MYO:", logs["test/hd/MYO"])
+print("Anatomical validity:", logs["test/anat_valid"])
+print("Temporal errors:", logs["test/temporal_errors"])
+```
+
+** Some metrics based on code originally from https://github.com/vitalab/vital
+
+# Ultrasound sector extraction
 ### Usage notes
 Inference time may be quite long if using an older GPU and long input sequences. 
 Included test examples (which are small) for sector extraction require up to 2-3 seconds per prediction (using roughly 7GB of VRAM), using a NVIDIA RTX3090 GPU.
@@ -29,15 +76,9 @@ Included test examples (which are small) for sector extraction require up to 2-3
 
 Images for this project are available here: https://hub.docker.com/r/arnaudjudge/echo-toolkit.
 
-Debugging in the container can be done with the following command, opening a bash command line in the container:
-```bash
-  sudo docker run -it --ipc host --gpus all -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest bash
-```
-
 In order to use a Docker container with the host machine's GPU to run this tool, you must install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
 The `--gpus all` flag allows for use of the host GPU.
 
-### Ultrasound sector extraction
 To run through the Docker images, use the following command:
 ```bash
   sudo docker run -it --ipc host --gpus all -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT>
@@ -58,6 +99,11 @@ To use the extraction tool without use of a GPU, use this command instead:
   sudo docker run -it --ipc host -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT> accelerator=cpu
 ```
 The `accelerator=cpu` argument changes the pytorch accelerator. Keep in mind that inference times can be very long with use of CPUs only. 
+
+Debugging in the container can be done with the following command, opening a bash command line in the container:
+```bash
+  sudo docker run -it --ipc host --gpus all -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest bash
+```
 
 ## Install
 To run fully locally install the project and its dependencies:
