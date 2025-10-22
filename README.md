@@ -22,7 +22,7 @@ Current functionalities:
 - Echocardiography metrics for 2-3D segmentation (BG, LV and MYO)
 - Ultrasound sector extraction tool
 
-# Echo Metrics
+# Echocardiography Segmentation Metrics
 Echo Toolkit provides a set of evaluation metrics to assess the quality and consistency of echocardiographic segmentations. These metrics include **Dice, Hausdorff distance, anatomical validity, temporal consistency**, and **mitral valve localization**.
 
 To obtain all of these metrics, use the `full_test_metrics` function from `echotk.metric.test_metrics`.
