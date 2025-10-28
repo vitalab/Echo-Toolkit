@@ -2,10 +2,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from medpy.metric import hd
 
-from echotk.metrics.utils.config import Label
+from echotk.utils.config import Label
 from echotk.metrics.temporal.temporal_consistency import (compute_temporal_consistency_metric,
                                                           check_temporal_consistency_errors)
-from echotk.metrics.utils.measure import EchoMeasure
+from echotk.utils.measure import EchoMeasure
 
 attr_thresholds = {
     'lv_area': 0.2,

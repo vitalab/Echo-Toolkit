@@ -25,7 +25,7 @@ Current functionalities:
 # Echocardiography Segmentation Metrics
 Echo Toolkit provides a set of evaluation metrics to assess the quality and consistency of echocardiographic segmentations. These metrics include **Dice, Hausdorff distance, anatomical validity, temporal consistency**, and **mitral valve localization**.
 
-To obtain all of these metrics, use the `full_test_metrics` function from `echotk.metric.test_metrics`.
+To obtain all of these metrics, use the `full_segmentation_metrics` function from `echotk.metric.segmentation_metrics`.
 
 ### Quick Reference
 - **Dice Score** (`dice`)  
@@ -49,14 +49,14 @@ To obtain all of these metrics, use the `full_test_metrics` function from `echot
 ### Example Usage
 
 ```python
-from echotk.metrics.test_metrics import full_test_metrics
+from echotk.metrics.segmentation_metrics import full_segmentation_metrics
 
 # batchwise_3d_segmentation: predicted 3D segmentation (T, H, W) -- in batch format (Time first)
 # batchwise_gt: ground-truth 3D segmentation
 # voxel_spacing: pixel spacing in mm
 # device: torch device (cpu or cuda)
 
-logs = full_test_metrics(batchwise_3d_segmentation, batchwise_gt, voxel_spacing, device, prefix="test", verbose=True)
+logs = full_segmentation_metrics(batchwise_3d_segmentation, batchwise_gt, voxel_spacing, device, prefix="test", verbose=True)
 
 # Access specific metrics
 print("Dice LV:", logs["test/dice/LV"])

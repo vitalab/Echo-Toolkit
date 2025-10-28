@@ -3,11 +3,11 @@ from typing import Dict, Sequence, Tuple
 
 import numpy as np
 
-from echotk.metrics.utils.config import Label
+from echotk.utils.config import Label
 from echotk.metrics.anatomical.cardiac_metrics import (LeftAtriumMetrics, EpicardiumMetrics, FrontierMetrics,
                                                        LeftVentricleMetrics, MyocardiumMetrics, SizeMetrics)
 from echotk.metrics.anatomical.config import thresholds
-from echotk.metrics.anatomical.segmentation_metrics import Segmentation2DMetrics, check_metric_validity
+from echotk.metrics.anatomical.segmentation2d import Segmentation2DMetrics, check_metric_validity
 
 
 def check_segmentation_validity(

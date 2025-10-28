@@ -3,8 +3,8 @@ import warnings
 import numpy as np
 
 from echotk.metrics.cardiac_cycle import estimate_num_cycles
-from echotk.metrics.utils.config import Label
-from echotk.metrics.utils.measure import EchoMeasure
+from echotk.utils.config import Label
+from echotk.utils.measure import EchoMeasure
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 

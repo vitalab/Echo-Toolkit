@@ -10,7 +10,7 @@ from medpy.metric import dc, hd
 from echotk.metrics.anatomical_metrics import is_anatomically_valid
 from echotk.metrics.landmark_metrics import mitral_valve_distance
 from echotk.metrics.temporal_metrics import check_temporal_validity
-from echotk.metrics.utils.config import LabelEnum, Label
+from echotk.utils.config import LabelEnum, Label
 
 
 def dice(pred: np.ndarray, target: np.ndarray, labels: Tuple[LabelEnum], exclude_bg: bool = True,
@@ -84,7 +84,7 @@ def hausdorff(pred: np.ndarray, target: np.ndarray, labels: Tuple[LabelEnum], ex
     return hd_dict
 
 
-def full_test_metrics(batchwise_3d_segmentation, batchwise_gt, voxel_spacing, device, prefix='', verbose=True):
+def full_segmentation_metrics(batchwise_3d_segmentation, batchwise_gt, voxel_spacing, device, prefix='', verbose=True):
     """
     Compute all evaluation metrics for a predicted segmentation sequence.
 
@@ -173,17 +173,17 @@ if __name__ == "__main__":
     reference = reference_nii.get_fdata().transpose((2, 0, 1)) # metrics expect T H W (time as batch)
 
     # sanity check, should all be perfect
-    metrics_dict = full_test_metrics(reference, reference, voxel_spacing=reference_nii.header['pixdim'][1:3], device='cpu', verbose=False)
+    metrics_dict = full_segmentation_metrics(reference, reference, voxel_spacing=reference_nii.header['pixdim'][1:3], device='cpu', verbose=False)
     print(metrics_dict)
 
     # good segmentation
     candidate_nii = nib.load('./../../data/examples/segmentation_candidate1.nii.gz') # good one
     candidate = candidate_nii.get_fdata().transpose((2, 0, 1)) # metrics expect T H W (time as batch)
-    metrics_dict = full_test_metrics(candidate, reference, voxel_spacing=reference_nii.header['pixdim'][1:3], device='cpu', verbose=False)
+    metrics_dict = full_segmentation_metrics(candidate, reference, voxel_spacing=reference_nii.header['pixdim'][1:3], device='cpu', verbose=False)
     print(metrics_dict)
 
     # not so good
     candidate_nii = nib.load('./../../data/examples/segmentation_candidate2.nii.gz') # not so good
     candidate = candidate_nii.get_fdata().transpose((2, 0, 1)) # metrics expect T H W (time as batch)
-    metrics_dict = full_test_metrics(candidate, reference, voxel_spacing=reference_nii.header['pixdim'][1:3], device='cpu', verbose=False)
+    metrics_dict = full_segmentation_metrics(candidate, reference, voxel_spacing=reference_nii.header['pixdim'][1:3], device='cpu', verbose=False)
     print(metrics_dict)

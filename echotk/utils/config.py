@@ -1,5 +1,5 @@
 from enum import IntEnum, unique
-from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import List, Sequence, Union
 
 SemanticStructureId = Union[int, Sequence[int]]
 ProtoLabel = Union[int, str, "LabelEnum"]

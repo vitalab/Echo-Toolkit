@@ -1,6 +1,6 @@
-from echotk.metrics.utils.config import Label
-from echotk.metrics.anatomical.anatomical_structure_metrics import Anatomical2DStructureMetrics
-from echotk.metrics.anatomical.segmentation_metrics import Segmentation2DMetrics
+from echotk.utils.config import Label
+from echotk.metrics.anatomical.anatomical2dstructure import Anatomical2DStructureMetrics
+from echotk.metrics.anatomical.segmentation2d import Segmentation2DMetrics
 
 
 class LeftAtriumMetrics(Anatomical2DStructureMetrics):

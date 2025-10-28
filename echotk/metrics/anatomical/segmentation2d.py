@@ -6,7 +6,7 @@ from scipy.ndimage import binary_fill_holes, distance_transform_edt, measurement
 from skimage import measure, morphology
 from skimage.morphology import convex_hull_image
 
-from echotk.metrics.utils.config import SemanticStructureId
+from echotk.utils.config import SemanticStructureId
 
 
 class Segmentation2DMetrics:

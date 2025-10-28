@@ -1,5 +1,5 @@
-from echotk.metrics.utils.config import SemanticStructureId
-from echotk.metrics.anatomical.segmentation_metrics import Segmentation2DMetrics
+from echotk.utils.config import SemanticStructureId
+from echotk.metrics.anatomical.segmentation2d import Segmentation2DMetrics
 
 
 class Anatomical2DStructureMetrics:

@@ -6,7 +6,7 @@ from multiprocessing import Pool
 import torch
 
 from echotk.metrics.anatomical.utils import check_segmentation_validity
-from echotk.metrics.utils.config import Label
+from echotk.utils.config import Label
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
