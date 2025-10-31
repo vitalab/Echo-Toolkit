@@ -1,10 +1,5 @@
 import numpy as np
-import scipy
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from scipy import interpolate
 from skimage import draw
-from matplotlib import pyplot as plt
-from matplotlib import path
 
 
 def masks_from_meshes(meshes, image_shape, nb_pts=36):
@@ -39,14 +34,5 @@ def compute_mask_from_mesh(mesh: np.ndarray, nb_pts: int, shape):
     polygon = np.concatenate([endo_points, np.flip(epi_points, axis=0), endo_points[0][None]], axis=0)
 
     mask = poly2mask(polygon[:, 1], polygon[:, 0], shape)
-
-    # print(polygon.shape)
-    #
-    #
-    #
-    # from matplotlib import pyplot as plt
-    # plt.imshow(mask)
-    # plt.scatter(polygon[:, 0], polygon[:, 1])
-    # plt.show()
 
     return mask
