@@ -1,5 +1,6 @@
 import functools
 import itertools
+import math
 import sys
 from collections import deque
 from numbers import Real
@@ -7,7 +8,9 @@ from typing import Callable, List, Literal, Tuple
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 from scipy import ndimage
+from skimage import measure
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
 from skimage.measure import find_contours
@@ -682,13 +685,27 @@ class ContourMeasure:
                     f"identify the corners at the base of the endo/epi."
                 )
 
+            # Sort all peaks by height descending
+            order = base_peak_heights.argsort()[::-1]
+            distinct = []
+            min_sep = segmentation.shape[1] // 4   # or whatever "distinct" means for you
+
+            for idx in order:
+                p = base_peaks[idx]
+                if all(abs(p - base_peaks[j]) >= min_sep for j in distinct):
+                    distinct.append(idx)
+                if len(distinct) == 2:
+                    break
+            # fallback: pick next highest even if it's close
             # Identify the indices of the 2 highest peaks in the list of peaks
-            base_highest_peaks = base_peak_heights.argsort()[-2:]
+            if len(distinct) < 2:
+                distinct.append(next(idx for idx in order if idx not in distinct))
+
             # Sort the indices of the 2 highest peaks to make sure they stay ordered by descending theta
             # (so that the peak of the left corner comes first) regardless of their heights
-            base_highest_peaks = sorted(base_highest_peaks, reverse=True)
-
-            landmarks_polar_indices.extend(base_peaks[base_highest_peaks])
+            distinct = sorted(distinct, reverse=True)
+            # Append the actual peak positions
+            landmarks_polar_indices.extend(base_peaks[distinct])
 
         if debug_plots:
             # Display contour curve in polar coordinates
