@@ -5,6 +5,11 @@ from echotk.utils.config import Label
 from echotk.utils.measure import ContourMeasure
 
 
+def shift_down(mask, k):
+    out = np.zeros_like(mask)
+    out[k:, :] = mask[:-k, :]
+    return out
+
 # MESH
 def lv_contour(segmentation, nb_points, identify_apex=True):
     lv_edge = ContourMeasure.structure_edge(segmentation=segmentation, label=Label.LV)
@@ -62,6 +67,9 @@ def lv_contour(segmentation, nb_points, identify_apex=True):
 def myo_contour(segmentation, nb_points, identify_apex=True):
     myo = np.isin(segmentation, Label.MYO)
 
+    # shift down to avoid error from segmentation being cut off
+    myo = shift_down(myo, 1) # only one pixel needed
+
     myo_convex = convex_hull_image(myo)
 
     myo_points = ContourMeasure._extract_landmarks_from_polar_contour(
@@ -112,6 +120,8 @@ def myo_contour(segmentation, nb_points, identify_apex=True):
         path_points_idx = np.linspace(0, len(path) - 1, nb_points).astype(int)
         myo_points = path[path_points_idx]
 
+    # shift back up 1 pixel for all points
+    myo_points[:, 0] -= 1
     return np.flip(myo_points, axis=0)
 
 def get_contour_points(segmentation, points_dict, identify_apex=True):
@@ -167,6 +177,12 @@ def get_mesh(seg: np.ndarray, nb_points: int = 36, nb_rad: int = 5):
 
     endo_points = []
     epi_points = []
+
+    import matplotlib.pyplot as plt
+    plt.figure()
+    plt.imshow(seg[0], cmap='gray')
+    plt.show()
+
     for i in range(len(seg)):
         endo, epi = get_contour_points(seg[i], points_dict, identify_apex=False)
         endo_points.append(endo)
