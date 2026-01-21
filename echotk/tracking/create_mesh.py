@@ -178,11 +178,6 @@ def get_mesh(seg: np.ndarray, nb_points: int = 36, nb_rad: int = 5):
     endo_points = []
     epi_points = []
 
-    import matplotlib.pyplot as plt
-    plt.figure()
-    plt.imshow(seg[0], cmap='gray')
-    plt.show()
-
     for i in range(len(seg)):
         endo, epi = get_contour_points(seg[i], points_dict, identify_apex=False)
         endo_points.append(endo)
