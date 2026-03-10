@@ -14,7 +14,7 @@ hydra:
 # PARAMETERS
 #
 # input and output paths
-input: ${oc.env:PROJECT_ROOT}/data/examples/
+input: ${oc.env:PROJECT_ROOT}/data/examples/images/
 output: ${oc.env:PROJECT_ROOT}/output/
 
 save_sector_mask: True
