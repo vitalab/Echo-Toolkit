@@ -99,7 +99,7 @@ def measure_remaining_annotations(img, mask, plot=False):
 
 def ransac_sector_w_metrics(mask, img, plot=False):
     # get 2d version of mask
-    flat_mask = mask.sum(axis=2)
+    flat_mask = mask.sum(axis=2) if mask.ndim == 3 else mask
     flat_mask[flat_mask != 0] = 1
 
     # Use only the largest blob, makes sure that edges are not inflated by useless extra blob
