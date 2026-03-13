@@ -73,7 +73,7 @@ nbstripout = "==0.6.1"
 nbQA = "==1.7.0"
 
 [tool.poetry.scripts]
-etk_extract_sector = "echotk.sector_extract:main"
+etk_extract_sector = "echotk.sector_extract_entrypoint:main"
 
 [tool.pytest.ini_options]
 addopts = [

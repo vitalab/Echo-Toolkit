@@ -2,7 +2,15 @@ FROM python:3.10-slim
 
 WORKDIR /workspace
 
-COPY . .
+COPY echotk/ echotk/
+COPY pyproject.toml .
+COPY hydra_plugins/ hydra_plugins/
+COPY README.md .
+COPY docker_light_requirements.txt .
+COPY data/model_weights/torchscript_sector_enet.pt data/model_weights/
+COPY data/examples/images/ data/examples/images/
+
+RUN chmod 644 data/model_weights/torchscript_sector_enet.pt
 
 RUN pip install --no-cache-dir torch==2.3.1 torchvision==0.18.1 \
         --index-url https://download.pytorch.org/whl/cpu \
@@ -10,3 +18,5 @@ RUN pip install --no-cache-dir torch==2.3.1 torchvision==0.18.1 \
     && pip install --no-cache-dir . --no-dependencies
 
 ENV PROJECT_ROOT=/workspace
+ENV ETK_LIGHT=1
+ENV MPLCONFIGDIR=/tmp/matplotlib
