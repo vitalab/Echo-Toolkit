@@ -169,7 +169,7 @@ def full_test_metrics(batchwise_3d_segmentation, batchwise_gt, voxel_spacing, de
 if __name__ == "__main__":
     import nibabel as nib
 
-    reference_nii = nib.load('./../../data/examples/segmentation_reference.nii.gz')
+    reference_nii = nib.load('./../../data/examples/segmentation/segmentation_reference.nii.gz')
     reference = reference_nii.get_fdata().transpose((2, 0, 1)) # metrics expect T H W (time as batch)
 
     # sanity check, should all be perfect
@@ -177,13 +177,13 @@ if __name__ == "__main__":
     print(metrics_dict)
 
     # good segmentation
-    candidate_nii = nib.load('./../../data/examples/segmentation_candidate1.nii.gz') # good one
+    candidate_nii = nib.load('./../../data/examples/segmentation/segmentation_candidate1.nii.gz') # good one
     candidate = candidate_nii.get_fdata().transpose((2, 0, 1)) # metrics expect T H W (time as batch)
     metrics_dict = full_test_metrics(candidate, reference, voxel_spacing=reference_nii.header['pixdim'][1:3], device='cpu', verbose=False)
     print(metrics_dict)
 
     # not so good
-    candidate_nii = nib.load('./../../data/examples/segmentation_candidate2.nii.gz') # not so good
+    candidate_nii = nib.load('./../../data/examples/segmentation/segmentation_candidate2.nii.gz') # not so good
     candidate = candidate_nii.get_fdata().transpose((2, 0, 1)) # metrics expect T H W (time as batch)
     metrics_dict = full_test_metrics(candidate, reference, voxel_spacing=reference_nii.header['pixdim'][1:3], device='cpu', verbose=False)
     print(metrics_dict)

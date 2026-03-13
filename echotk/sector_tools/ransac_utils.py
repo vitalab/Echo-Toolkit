@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from matplotlib import pyplot as plt
+import inspect
 
 from scipy.ndimage import binary_fill_holes
 from scipy import signal
@@ -11,6 +12,8 @@ from skspatial.objects import Line
 import warnings
 warnings.filterwarnings(action='ignore', module='skimage')
 
+_ransac_params = inspect.signature(ransac).parameters
+_ransac_rng_kwarg = "random_state" if "random_state" in _ransac_params else "rng"
 
 def run_ransac_line(img, angle, constrain_angles=True, plot=False):
     points = np.nonzero(img)
@@ -25,7 +28,7 @@ def run_ransac_line(img, angle, constrain_angles=True, plot=False):
                             angle, abs_tol=absolute_tol)
 
     model_robust, _ = ransac(data, LineModelND, min_samples=2, is_model_valid=is_line_valid,
-                             residual_threshold=1, max_trials=data.shape[0]*6, rng=0)
+                             residual_threshold=1, max_trials=data.shape[0]*6, **{_ransac_rng_kwarg: 0})
 
     line_x = np.arange(-int(img.shape[1]*0.25), int(img.shape[1]*1.25))
     line_y_robust = model_robust.predict_y(line_x)
@@ -53,7 +56,7 @@ def run_ransac_circle(img, expected_center, plot=False):
                and math.isclose(model.params[0], expected_center[0], abs_tol=20) \
 
     model_robust, _ = ransac(data, CircleModel, min_samples=3, residual_threshold=1,
-                             max_trials=data.shape[0]*6, is_model_valid=is_circle_valid, rng=0)
+                             max_trials=data.shape[0]*6, is_model_valid=is_circle_valid, **{_ransac_rng_kwarg: 0})
     if plot:
         plt.figure()
         plt.title("Points used to find circle")

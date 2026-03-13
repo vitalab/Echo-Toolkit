@@ -49,7 +49,7 @@ To obtain all of these metrics, use the `full_test_metrics` function from `echot
 ### Example Usage
 
 ```python
-from echotk.metrics.test_metrics import full_test_metrics
+from echotk.metrics.eval_metrics import full_test_metrics
 
 # batchwise_3d_segmentation: predicted 3D segmentation (T, H, W) -- in batch format (Time first)
 # batchwise_gt: ground-truth 3D segmentation
@@ -68,44 +68,64 @@ print("Temporal errors:", logs["test/temporal_errors"])
 ** Some metrics based on code originally from https://github.com/vitalab/vital
 
 # Ultrasound sector extraction
-### Usage notes
-Inference time may be quite long if using an older GPU and long input sequences. 
-Included test examples (which are small) for sector extraction require up to 2-3 seconds per prediction (using roughly 7GB of VRAM), using a NVIDIA RTX3090 GPU.
+Ultrasound sector extraction removes all annotations, text, ECG trace and unnecessary information from the images, 
+keeping only the region of interest, the *cone*, *sector*, or *fan mask*.
 
-## Usage through Docker container
+|![gif before extraction](./assets/a4c.gif)<br>Before|![gif after extraction](./assets/a4c_masked.gif)<br>After|
+|:-:|:-:|
+
+## Usage through Docker containers
 
 Images for this project are available here: https://hub.docker.com/r/arnaudjudge/echo-toolkit.
 
-In order to use a Docker container with the host machine's GPU to run this tool, you must install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
-The `--gpus all` flag allows for use of the host GPU.
-
 To run through the Docker images, use the following command:
 ```bash
-  sudo docker run -it --ipc host --gpus all -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT>
+  sudo docker run -it -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:light etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT>
 ```
 
 The command syntax is as follows:
-- `--ipc host` gives the container more shared memory.
-- `--gpus all` allocates access to all gpus on host machine. `--gpus "device=0"` can be used to allocate a specific gpu only.
 - `-v $(pwd)/:/ETK_MOUNT/` mounts the current directory to the /ETK_MOUNT/ directory in the container, allowing for file syncing between host and container.
-- `--user $(id -u):$(id -g)` allows to user in the container to be the same as outside it. Output files will not be locked by sudo user once created.
+- `--user $(id -u):$(id -g)` allows the user in the container to be the same as outside it. Output files will not be locked by sudo user once created.
 - `input=/ETK_MOUNT/<PATH_TO_INPUT_FILE>` input file. <u>The input file (or folder) must be within the current mounted directory.</u>*
 - `output=/ETK_MOUNT/<PATH_TO_OUTPUT>` indicated the output file location. <u>The output folder location must be within the current mounted directory.</u>*
 
-\* Input and output paths must be located in current directory in order for files to be visible to the container and to be synced. This is true for any pah referenced in command line arguments.
+\* Input and output paths must be located in current directory in order for files to be visible to the container and to be synced. This is true for any path referenced in command line arguments.
 
-To use the extraction tool without use of a GPU, use this command instead:
 ```bash
-  sudo docker run -it --ipc host -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT> accelerator=cpu
-```
-The `accelerator=cpu` argument changes the pytorch accelerator. Keep in mind that inference times can be very long with use of CPUs only. 
-
-Debugging in the container can be done with the following command, opening a bash command line in the container:
-```bash
-  sudo docker run -it --ipc host --gpus all -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:latest bash
+# Example: input file is at ./data/patient01.nii.gz, output to ./results/
+sudo docker run -it -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) \
+    arnaudjudge/echo-toolkit:light etk_extract_sector \
+    input=/ETK_MOUNT/data/patient01.nii.gz \
+    output=/ETK_MOUNT/results/
 ```
 
-## Install
+The *light* tag makes use of a small, lightweight ENet model which runs fast on a CPU. 
+If results are not satisfactory, a larger model based on the nnU-Net architecture is available using the *large-nnunet* tag 
+(for reasonable use, it requires a GPU and additional installation steps described below).
+
+#### large-nnunet usage notes
+Inference time may be quite long if using an older GPU and long input sequences. 
+Included test examples (which are small) for sector extraction require up to 2-3 seconds per prediction (using roughly 7GB of VRAM), using a NVIDIA RTX3090 GPU.
+
+In order to use a Docker container with the host machine's GPU to run the large nnU-Net variant of this tool, 
+you must install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). The `--gpus all` flag allows for use of the host GPU.
+
+To run through this Docker image, use the following command:
+```bash
+  sudo docker run -it --ipc host --gpus all -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:large-nnunet etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT>
+```
+
+The additional command syntax is as follows:
+- `--ipc host` gives the container more shared memory.
+- `--gpus all` allocates access to all gpus on host machine. `--gpus "device=0"` can be used to allocate a specific gpu only.
+
+To use the nnunet version of the extraction tool without use of a GPU (not recommended! can lead to very long inference time), use this command instead:
+```bash
+  sudo docker run -it --ipc host -v $(pwd)/:/ETK_MOUNT/ --user $(id -u):$(id -g) arnaudjudge/echo-toolkit:large-nnunet etk_extract_sector input=/ETK_MOUNT/<PATH_TO_INPUT_FILE> output=/ETK_MOUNT/<PATH_TO_OUTPUT> accelerator=cpu
+```
+The `accelerator=cpu` argument changes the pytorch accelerator. Keep in mind that inference times can be very long with use of CPUs only.
+
+## Install the Project
 To run fully locally install the project and its dependencies:
 
 1. Download the repository:
@@ -133,15 +153,8 @@ To run fully locally install the project and its dependencies:
    cd ..
    ```
 
-## Usage
+## Usage (with installation)
 ### Ultrasound sector extraction
-
-Ultrasound sector extraction removes all annotations, text, ECG trace and unnecessary information from the images, 
-keeping only the region of interest, the *cone* or *sector*.
-
-|![gif before extraction](./assets/a4c.gif)<br>Before|![gif after extraction](./assets/a4c_masked.gif)<br>After|
-|:-:|:-:|
-
 
 This project contains a command line script to create and apply a mask to remove all such annotations. 
 To run it, simply use the following command:
@@ -150,7 +163,8 @@ To run it, simply use the following command:
 etk_extract_sector
 ```
 
-By default, it will process input data from the `./data/examples/` folder at the project's root. 
+By default, it will process input data from the `./data/examples/` folder at the project's root, 
+with the large nnU-Net variant of the sector extraction model.
 Example images and sequences are included already [^1].
 
 Many options are available through hydra (https://hydra.cc/docs/intro/) CLI override syntax or 

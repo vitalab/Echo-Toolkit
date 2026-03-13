@@ -1,6 +1,5 @@
 defaults:
   - _self_
-  - model: sector_3d
   - dataset_properties: sector
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
@@ -20,10 +19,9 @@ output: ${oc.env:PROJECT_ROOT}/output/
 save_sector_mask: True
 save_metrics: False
 
-# checkpoint path for nnunet model
-nnunet_ckpt: ${oc.env:PROJECT_ROOT}/data/model_weights/sector_extract.ckpt
-use_tta: False # tta generally not needed for sector extraction
-accelerator: gpu
+# checkpoint path for torchscript model
+model: ${oc.env:PROJECT_ROOT}/data/model_weights/torchscript_sector_enet.pt
+accelerator: cpu
 
 # show plots
 show_result_gifs: False
