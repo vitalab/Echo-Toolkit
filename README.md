@@ -49,7 +49,7 @@ To obtain all of these metrics, use the `full_test_metrics` function from `echot
 ### Example Usage
 
 ```python
-from echotk.metrics.test_metrics import full_test_metrics
+from echotk.metrics.eval_metrics import full_test_metrics
 
 # batchwise_3d_segmentation: predicted 3D segmentation (T, H, W) -- in batch format (Time first)
 # batchwise_gt: ground-truth 3D segmentation
