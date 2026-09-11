@@ -915,10 +915,8 @@ class ContourMeasure:
             path.pop()
 
             return np.array(path)
-        else:
-            plt.figure()
-            plt.imshow(img)
-            plt.scatter(start[0], start[1], label='start')
-            plt.scatter(end[0], end[1], label='end')
-            plt.legend()
-            plt.show()
+        # No 8-connected path between the two points: the edge the caller traced is broken.
+        # Raise rather than return None, so the caller sees the real cause instead of a
+        # TypeError two frames later (batch callers catch this and drop the case).
+        raise RuntimeError(f"no path along the contour from {tuple(start)} to {tuple(end)}: "
+                           f"the edge is not 8-connected between them")
