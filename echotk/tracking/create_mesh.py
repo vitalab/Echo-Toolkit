@@ -12,6 +12,31 @@ def shift_down(mask, k):
     out[k:, :] = mask[:-k, :]
     return out
 
+
+def _cut_base(edge, pt_a, pt_b, radius=10):
+    """Break the edge loop between the two base points, so a shortest path has to go round.
+
+    `get_path` walks a closed loop, so between the two base points it has a choice: the long
+    way around the wall, or straight across the base. Deleting a patch of the base is what
+    takes the short way away -- but the patch has to land ON the contour. Centring it on the
+    midpoint of the straight chord between the base points (what this used to do, kept
+    commented at both call sites) misses whenever the base bows further than `radius` from
+    that chord, which a long oblique base does -- A3C most of all. The box then deletes
+    nothing, the loop stays closed, and the "contour" comes back as the base itself: 102-248px
+    where the wall is 500-650. So cut at the edge pixel nearest that midpoint instead, ignoring
+    the ends where the base points themselves sit.
+    """
+    mid = np.array([pt_a, pt_b]).mean(axis=0).round().astype(int)
+    ij = np.argwhere(edge)
+    away = ij[(np.linalg.norm(ij - pt_a, axis=1) > radius / 2)
+              & (np.linalg.norm(ij - pt_b, axis=1) > radius / 2)]
+    if not len(away):                                   # contour shorter than the cut itself
+        away = ij
+    cut = away[np.linalg.norm(away - mid, axis=1).argmin()]
+    edge[max(cut[0] - radius, 0):cut[0] + radius, max(cut[1] - radius, 0):cut[1] + radius] = 0
+    return edge
+
+
 # MESH
 def lv_contour(segmentation, nb_points, identify_apex=True):
     lv_edge = ContourMeasure.structure_edge(segmentation=segmentation, label=Label.LV)
@@ -42,8 +67,11 @@ def lv_contour(segmentation, nb_points, identify_apex=True):
     else:
 
         # TODO simply concat path1 and path2 with apex
-        base_mid = np.array([base[0], base[1]]).mean(axis=0).round().astype(int)
-        lv_edge[base_mid[0] - 10:base_mid[0] + 10, base_mid[1] - 10:base_mid[1] + 10] = 0
+        # The cut used to go on the midpoint of the chord between the base points, which is
+        # not on the contour when the base bows; put it back to restore that behaviour.
+        # base_mid = np.array([base[0], base[1]]).mean(axis=0).round().astype(int)
+        # lv_edge[base_mid[0] - 10:base_mid[0] + 10, base_mid[1] - 10:base_mid[1] + 10] = 0
+        lv_edge = _cut_base(lv_edge, base[0], base[1])
 
         # from matplotlib import pyplot as plt
         # plt.figure()
@@ -103,8 +131,11 @@ def myo_contour(segmentation, nb_points, identify_apex=True):
             axis=0,
         )
     else:
-        base_mid = np.array([myo_points[1], myo_points[2]]).mean(axis=0).round().astype(int)
-        myo_edge[base_mid[0] - 10:base_mid[0] + 10, base_mid[1] - 10:base_mid[1] + 10] = 0
+        # As in lv_contour: the cut has to sit on the contour, not on the chord between the
+        # base points. Put these two lines back to restore the old behaviour.
+        # base_mid = np.array([myo_points[1], myo_points[2]]).mean(axis=0).round().astype(int)
+        # myo_edge[base_mid[0] - 10:base_mid[0] + 10, base_mid[1] - 10:base_mid[1] + 10] = 0
+        myo_edge = _cut_base(myo_edge, myo_points[1], myo_points[2])
 
         # from matplotlib import pyplot as plt
         # plt.figure()
