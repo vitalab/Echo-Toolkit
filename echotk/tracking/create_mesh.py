@@ -226,7 +226,8 @@ _END_BLEND_WEIGHTS = (0, 0.125, 0.25, 0.5, 0.625, 0.75, 0.875)
 
 
 def mesh_between_curves(curve1: np.ndarray, curve2: np.ndarray, nb_rad: int = 5,
-                        u_extension: float = 0.05) -> np.ndarray:
+                        u_extension: float = 0.05,
+                        min_spacing: float = 0.35) -> np.ndarray:
     """Mesh two curves by spokes perpendicular to the wall rather than by index pairing.
 
     `compute_mesh_from_pts` joins point i of one curve to point i of the other, which assumes
@@ -235,12 +236,22 @@ def mesh_between_curves(curve1: np.ndarray, curve2: np.ndarray, nb_rad: int = 5,
     Here each spoke is instead the normal to the midline: the perpendicular at the midpoint of
     pair i, intersected with each curve, and sampled between the two intersections.
 
+    A normal field converges on the concave side, so around the apex -- where the endocardium
+    curves tighter than the wall is thick -- neighbouring normals meet inside the wall and the
+    mesh folds over itself. `min_spacing` is what stops that: the feet of the spokes are held
+    in order along each curve, and no closer together than that fraction of the spacing an
+    even sampling would give. A spoke that would have crossed its neighbour is slid along the
+    curve instead, which costs it its right angle and keeps the mesh single-valued.
+
     Args:
         curve1: (nb_pts, 2) points of the first curve, e.g. the endocardium.
         curve2: (nb_pts, 2) points of the second curve, e.g. the epicardium. Same length.
         nb_rad: number of layers in the mesh, including both curves.
         u_extension: fraction of the parameter range each curve is extrapolated by at both
             ends, so that perpendiculars near the base still meet them.
+        min_spacing: floor on the gap between consecutive feet along a curve, as a fraction of
+            that curve's length over nb_pts - 1. 0 lets the spokes fall where the normals put
+            them, folds and all.
 
     Returns:
         mesh (nb_pts, nb_rad, 2), going from curve1 to curve2 along each spoke.
@@ -272,14 +283,20 @@ def mesh_between_curves(curve1: np.ndarray, curve2: np.ndarray, nb_rad: int = 5,
     # the pixel units the contours are in.
     reach = 100.0
 
-    mesh = np.zeros((nb_pts, nb_rad, 2), dtype=float)
-    alpha = np.linspace(0, 1, nb_rad)[:, None]
+    feet1 = np.zeros((nb_pts, 2))
+    feet2 = np.zeros((nb_pts, 2))
     for i in range(nb_pts):
         perp_line = LineString([tuple(mids[i] + perps[i] * reach),
                                 tuple(mids[i] - perps[i] * reach)])
-        p1 = _closest_intersection(perp_line, line1, mids[i])
-        p2 = _closest_intersection(perp_line, line2, mids[i])
-        mesh[i] = (1 - alpha) * p1 + alpha * p2
+        feet1[i] = _closest_intersection(perp_line, line1, mids[i])
+        feet2[i] = _closest_intersection(perp_line, line2, mids[i])
+
+    if min_spacing > 0:
+        feet1 = _order_feet(line1, feet1, min_spacing * _length(curve1) / (nb_pts - 1))
+        feet2 = _order_feet(line2, feet2, min_spacing * _length(curve2) / (nb_pts - 1))
+
+    alpha = np.linspace(0, 1, nb_rad)[:, None]
+    mesh = (1 - alpha) * feet1[:, None, :] + alpha * feet2[:, None, :]
 
     # Ends: fade back to the index-paired segment, which is anchored on the real end points.
     straight = (1 - alpha[None]) * curve1[:, None, :] + alpha[None] * curve2[:, None, :]
@@ -290,6 +307,48 @@ def mesh_between_curves(curve1: np.ndarray, curve2: np.ndarray, nb_rad: int = 5,
             mesh[j] = w * mesh[j] + (1 - w) * straight[j]
 
     return mesh
+
+
+def _length(curve: np.ndarray) -> float:
+    """Polyline length of a curve given by its points."""
+    return float(np.linalg.norm(np.diff(curve, axis=0), axis=1).sum())
+
+
+def _order_feet(curve_line: LineString, feet: np.ndarray, min_gap: float) -> np.ndarray:
+    """Slide the spokes' feet along `curve_line` until they are in order and `min_gap` apart.
+
+    Works in arc length, so a foot only ever moves along the curve it already sits on. The
+    corrected positions are the closest ones (least squares) that satisfy s[i+1] >= s[i] +
+    min_gap, which is the isotonic regression of s[i] - i * min_gap -- so feet the normals put
+    somewhere sensible stay put, and only a run that piles up gets spread out.
+    """
+    s = np.array([curve_line.project(Point(f)) for f in feet])
+
+    # The curve may be traced against the order of the points; correct in the rising direction.
+    descending = np.median(np.diff(s)) < 0
+    if descending:
+        s = curve_line.length - s
+
+    s = _isotonic(s - min_gap * np.arange(len(s))) + min_gap * np.arange(len(s))
+    s = np.clip(s, 0.0, curve_line.length)
+
+    if descending:
+        s = curve_line.length - s
+    return np.array([curve_line.interpolate(v).coords[0] for v in s])
+
+
+def _isotonic(y: np.ndarray) -> np.ndarray:
+    """Closest non-decreasing sequence to `y` in least squares (pool adjacent violators)."""
+    values, weights = [], []
+    for v in y:
+        values.append(float(v))
+        weights.append(1)
+        while len(values) > 1 and values[-2] > values[-1]:
+            v2, w2 = values.pop(), weights.pop()
+            v1, w1 = values.pop(), weights.pop()
+            values.append((v1 * w1 + v2 * w2) / (w1 + w2))
+            weights.append(w1 + w2)
+    return np.repeat(values, weights)
 
 
 def _closest_intersection(perp_line: LineString, curve_line: LineString, origin: np.ndarray):
@@ -312,17 +371,18 @@ def _closest_intersection(perp_line: LineString, curve_line: LineString, origin:
     return np.array(min(pts, key=lambda p: p.distance(origin_geom)).coords[0])
 
 
-def compute_mesh_from_pts_perpendicular(endo_pts: np.ndarray, epi_pts: np.ndarray, nb_rad: int):
+def compute_mesh_from_pts_perpendicular(endo_pts: np.ndarray, epi_pts: np.ndarray, nb_rad: int,
+                                        min_spacing: float = 0.35):
     """`compute_mesh_from_pts` with `mesh_between_curves`' spokes.
 
     Same arguments and same (n_frames, nb_pts * nb_rad, 2) layout -- layer by layer, so the
     first nb_pts points are the endocardium and the last nb_pts the epicardium, which is what
-    `mesh2mask` and the tracker expect.
+    `mesh2mask` and the tracker expect. `min_spacing` is `mesh_between_curves`' fold guard.
     """
     nb_frames = endo_pts.shape[0]
     assert nb_frames == epi_pts.shape[0]
 
-    meshes = [mesh_between_curves(endo_pts[i], epi_pts[i], nb_rad=nb_rad)
+    meshes = [mesh_between_curves(endo_pts[i], epi_pts[i], nb_rad=nb_rad, min_spacing=min_spacing)
               for i in range(nb_frames)]
     # (frames, nb_pts, nb_rad, 2) -> (frames, nb_rad, nb_pts, 2) -> flat, layer-major
     return np.swapaxes(np.array(meshes), 1, 2).reshape(nb_frames, -1, 2)
