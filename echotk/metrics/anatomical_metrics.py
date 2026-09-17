@@ -98,5 +98,12 @@ def is_anatomically_valid_multiproc(output,
                 )
             )
         )
+        # Drain the pool rather than let `with` terminate() it. terminate sends SIGTERM to
+        # every worker, and these workers are forks of whatever called us -- under submitit
+        # that is a job process which installs a SIGTERM handler, so each worker logs
+        # "Bypassing signal SIGTERM" into the job log on its way out, one burst per call.
+        # close() lets them exit on their own sentinel instead, at no cost in wall time.
+        pool.close()
+        pool.join()
     return out
 
