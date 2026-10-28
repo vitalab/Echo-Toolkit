@@ -340,7 +340,8 @@ class Segmentation2DMetrics:
             nb_erosions = 0
             while measure.label(eroding_binary_struct, connectivity=2, return_num=True)[1] == 1:
                 eroding_binary_struct = morphology.binary_erosion(eroding_binary_struct, np.ones((3, 3)))
-                morphology.remove_small_objects(eroding_binary_struct, min_size=self.small_objects_size, in_place=True)
+                morphology.remove_small_objects(eroding_binary_struct, min_size=self.small_objects_size,
+                                                out=eroding_binary_struct)
                 nb_erosions += 1
 
             return nb_erosions / max_struct_dist_to_background

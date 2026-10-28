@@ -862,14 +862,14 @@ class ContourMeasure:
             label: SemanticStructureId,
     ) -> np.ndarray:
         mask = np.isin(segmentation, label).astype(int)
-        edge = mask ^ erosion(mask, selem=np.ones((3, 3)))
+        edge = mask ^ erosion(mask, footprint=np.ones((3, 3)))
         return edge
 
     @staticmethod
     def myo_edge(segmentation: np.ndarray, myo_labels: SemanticStructureId = Label.MYO) -> np.ndarray:
         myo_mask = np.isin(segmentation, myo_labels).astype(int)
         myo_mask = convex_hull_image(myo_mask)
-        myo_edge = myo_mask ^ erosion(myo_mask, selem=np.ones((3, 3)))
+        myo_edge = myo_mask ^ erosion(myo_mask, footprint=np.ones((3, 3)))
         return myo_edge
 
     @staticmethod
